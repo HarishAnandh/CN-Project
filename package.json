@@ -1,0 +1,15 @@
+{
+  "name": "smart-warehouse-drone-fleet",
+  "version": "1.0.0",
+  "description": "Smart Warehouse Drone Fleet - Frontend UI & Network Adapter Bridge",
+  "main": "bridge/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node bridge/server.js",
+    "build-backend": "make -C backend"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.17.0"
+  }
+}

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Warehouse Drone Fleet - Network & Telemetry Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Topbar Navigation & Global Control -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon"><i data-lucide="radio"></i></div>
+        <div>
+          <h1>Smart Warehouse Drone Fleet</h1>
+          <p class="subtitle">Computer Networks UDP Socket & Autonomous Telemetry Dashboard</p>
+        </div>
+      </div>
+
+      <div class="topbar-status">
+        <div class="status-chip badge-network">
+          <span class="dot green"></span>
+          <span class="label">Socket: <strong>127.0.0.1:8080 (UDP)</strong></span>
+        </div>
+        <div class="status-chip badge-backend" id="backend-status-chip">
+          <span class="dot green" id="backend-dot"></span>
+          <span class="label">C Backend: <strong id="backend-status-text">RUNNING</strong></span>
+        </div>
+        <div class="status-chip badge-ws" id="ws-status-chip">
+          <span class="dot green" id="ws-dot"></span>
+          <span class="label">WS UI: <strong id="ws-status-text">CONNECTED</strong></span>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="simulateMovement()"><i data-lucide="play"></i> Move Fleet</button>
+        <button class="btn btn-secondary" onclick="openDeliveryModal()"><i data-lucide="package"></i> Assign Delivery</button>
+        <button class="btn btn-accent" onclick="sendPacketPrompt()"><i data-lucide="send"></i> Send UDP Packet</button>
+        <button class="btn btn-danger" onclick="restartBackend()"><i data-lucide="refresh-cw"></i> Restart C Process</button>
+      </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <button class="nav-item active" data-tab="tab-overview" onclick="switchTab('tab-overview')">
+        <i data-lucide="layout-dashboard"></i> Dashboard Overview
+      </button>
+      <button class="nav-item" data-tab="tab-warehouse" onclick="switchTab('tab-warehouse')">
+        <i data-lucide="map"></i> Warehouse Visualizer
+      </button>
+      <button class="nav-item" data-tab="tab-drones" onclick="switchTab('tab-drones')">
+        <i data-lucide="drone"></i> Drone Management
+      </button>
+      <button class="nav-item" data-tab="tab-network" onclick="switchTab('tab-network')">
+        <i data-lucide="network"></i> Network Monitoring (CN Focus)
+      </button>
+      <button class="nav-item" data-tab="tab-logs" onclick="switchTab('tab-logs')">
+        <i data-lucide="file-text"></i> System & Network Logs
+      </button>
+    </nav>
+
+    <!-- Main Content Tabs -->
+    <main class="content">
+
+      <!-- TAB 1: OVERVIEW DASHBOARD -->
+      <section id="tab-overview" class="tab-pane active">
+        <!-- KPI Cards Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon icon-blue"><i data-lucide="cpu"></i></div>
+            <div class="kpi-details">
+              <span class="kpi-title">Total Drones</span>
+              <span class="kpi-value" id="kpi-total-drones">3</span>
+              <span class="kpi-sub">Managed by C Backend</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon icon-cyan"><i data-lucide="navigation"></i></div>
+            <div class="kpi-details">
+              <span class="kpi-title">Active Drones</span>
+              <span class="kpi-value" id="kpi-active-drones">0</span>
+              <span class="kpi-sub" id="kpi-active-sub">0 Delivering / 3 Idle</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon icon-green"><i data-lucide="activity"></i></div>
+            <div class="kpi-details">
+              <span class="kpi-title">UDP Datagrams</span>
+              <span class="kpi-value" id="kpi-total-packets">0</span>
+              <span class="kpi-sub">Packets Sent over Socket 8080</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon icon-amber"><i data-lucide="battery-charging"></i></div>
+            <div class="kpi-details">
+              <span class="kpi-title">Fleet Avg Battery</span>
+              <span class="kpi-value" id="kpi-avg-battery">100%</span>
+              <span class="kpi-sub">Power Telemetry</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon icon-purple"><i data-lucide="wifi"></i></div>
+            <div class="kpi-details">
+              <span class="kpi-title">Network Clients</span>
+              <span class="kpi-value" id="kpi-ws-clients">1</span>
+              <span class="kpi-sub">Connected WS Subscribers</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CN Highlights Banner -->
+        <div class="cn-banner-card">
+          <div class="banner-header">
+            <i data-lucide="shield-alert"></i>
+            <div>
+              <h3>Computer Networks Architecture Breakdown</h3>
+              <p>Demonstrating UDP socket datagram communication between C process client & adapter server listener</p>
+            </div>
+          </div>
+          <div class="cn-specs">
+            <div class="spec-item"><span class="spec-label">Transport Protocol:</span> <strong>UDP (Datagram)</strong></div>
+            <div class="spec-item"><span class="spec-label">Socket Family:</span> <strong>AF_INET (IPv4)</strong></div>
+            <div class="spec-item"><span class="spec-label">Socket Type:</span> <strong>SOCK_DGRAM</strong></div>
+            <div class="spec-item"><span class="spec-label">Server Port:</span> <strong>8080</strong></div>
+            <div class="spec-item"><span class="spec-label">Loopback Host:</span> <strong>127.0.0.1</strong></div>
+            <div class="spec-item"><span class="spec-label">Socket Descriptor (C):</span> <strong id="spec-fd">fd=3</strong></div>
+          </div>
+        </div>
+
+        <!-- Overview Split Layout -->
+        <div class="split-grid">
+          <!-- Quick Drone Status List -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i data-lucide="list"></i> Fleet Telemetry Snapshot</h3>
+              <button class="btn btn-sm btn-secondary" onclick="viewDrones()"><i data-lucide="refresh-cw"></i> Poll C State</button>
+            </div>
+            <div class="panel-body">
+              <div class="drone-quick-list" id="drone-quick-list">
+                <!-- Dynamically Populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Network Event Log -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i data-lucide="zap"></i> Live Network & Socket Feed</h3>
+              <span class="badge badge-network">Real-time Stream</span>
+            </div>
+            <div class="panel-body">
+              <div class="mini-log-feed" id="mini-log-feed">
+                <!-- Dynamically Populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: WAREHOUSE VISUALIZER -->
+      <section id="tab-warehouse" class="tab-pane">
+        <div class="warehouse-layout">
+          <div class="canvas-container">
+            <div class="canvas-header">
+              <div class="canvas-title"><i data-lucide="map-pin"></i> Live 2D Warehouse Floor Map</div>
+              <div class="canvas-legend">
+                <span class="legend-item"><span class="legend-color idle"></span> Idle</span>
+                <span class="legend-item"><span class="legend-color delivering"></span> Delivering</span>
+                <span class="legend-item"><span class="legend-color charging"></span> Charging</span>
+                <span class="legend-item"><span class="legend-color offline"></span> Offline</span>
+                <span class="legend-item"><span class="legend-line"></span> Flight Pathway</span>
+              </div>
+            </div>
+            <canvas id="warehouseCanvas" width="900" height="550"></canvas>
+          </div>
+
+          <!-- Canvas Inspector Sidebar -->
+          <div class="inspector-sidebar">
+            <div class="panel">
+              <div class="panel-header">
+                <h3><i data-lucide="crosshair"></i> Selected Drone Telemetry</h3>
+              </div>
+              <div class="panel-body" id="selected-drone-details">
+                <p class="text-muted">Click on any drone in the warehouse map to view detailed telemetry, coordinates, and flight control.</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3><i data-lucide="sliders"></i> Simulation Controls</h3>
+              </div>
+              <div class="panel-body control-group">
+                <button class="btn btn-block btn-primary" onclick="simulateMovement()"><i data-lucide="play"></i> Trigger Fleet Step (+5, +3)</button>
+                <button class="btn btn-block btn-secondary" onclick="openDeliveryModal()"><i data-lucide="package"></i> Assign Storage Delivery</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: DRONE MANAGEMENT -->
+      <section id="tab-drones" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header">
+            <h3><i data-lucide="drone"></i> Drone Fleet Directory & Control</h3>
+            <div class="panel-actions">
+              <button class="btn btn-sm btn-secondary" onclick="viewDrones()"><i data-lucide="refresh-cw"></i> Refresh Telemetry</button>
+              <button class="btn btn-sm btn-primary" onclick="simulateMovement()"><i data-lucide="fast-forward"></i> Move All</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Drone ID</th>
+                    <th>Status</th>
+                    <th>Position (X, Y)</th>
+                    <th>Destination</th>
+                    <th>Battery Meter</th>
+                    <th>Socket State</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="drone-table-body">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: NETWORK MONITORING (CN FOCUS) -->
+      <section id="tab-network" class="tab-pane">
+        <!-- Topology Visualization Card -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3><i data-lucide="git-merge"></i> Computer Networks Socket Topology Diagram</h3>
+            <span class="badge badge-network">Client-Server UDP Sockets</span>
+          </div>
+          <div class="panel-body">
+            <div class="topology-diagram">
+              <div class="topo-node node-c">
+                <div class="node-icon"><i data-lucide="terminal"></i></div>
+                <div class="node-title">C Backend Client</div>
+                <div class="node-sub"><code>drone_fleet</code> process</div>
+                <div class="node-tag"><code>socket(AF_INET, SOCK_DGRAM)</code></div>
+              </div>
+
+              <div class="topo-arrow">
+                <div class="arrow-line animated"></div>
+                <span class="arrow-label">UDP Datagrams (Port 8080)</span>
+              </div>
+
+              <div class="topo-node node-server">
+                <div class="node-icon"><i data-lucide="server"></i></div>
+                <div class="node-title">Adapter Server</div>
+                <div class="node-sub">UDP Listener & Bridge</div>
+                <div class="node-tag"><code>dgram.bind(8080, '127.0.0.1')</code></div>
+              </div>
+
+              <div class="topo-arrow">
+                <div class="arrow-line animated"></div>
+                <span class="arrow-label">WebSockets Stream</span>
+              </div>
+
+              <div class="topo-node node-ui">
+                <div class="node-icon"><i data-lucide="monitor"></i></div>
+                <div class="node-title">Dashboard UI</div>
+                <div class="node-sub">HTML5 / Canvas UI</div>
+                <div class="node-tag"><code>ws://localhost:3000/ws</code></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Packet Injector & Network Inspector split -->
+        <div class="split-grid">
+          <!-- Packet Injector Form -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i data-lucide="send"></i> Custom UDP Packet Injector</h3>
+            </div>
+            <div class="panel-body">
+              <form id="packet-injector-form" onsubmit="handlePacketInjection(event)">
+                <div class="form-group">
+                  <label for="packet-msg-input">Packet Payload Message:</label>
+                  <input type="text" id="packet-msg-input" class="form-control" placeholder="e.g. DISPATCH_COMMAND_DRONE_1" required>
+                </div>
+                <div class="form-group">
+                  <label for="packet-method-select">Transmission Mechanism:</label>
+                  <select id="packet-method-select" class="form-control">
+                    <option value="C_SOCKET">Via C Backend send_message() (Socket sendto)</option>
+                    <option value="DIRECT_UDP">Direct UDP Injection to Port 8080</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block"><i data-lucide="radio"></i> Transmit Packet Datagram</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Socket Details Card -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i data-lucide="cpu"></i> UDP Socket Connection Specs</h3>
+            </div>
+            <div class="panel-body">
+              <div class="socket-spec-list">
+                <div class="spec-row">
+                  <span>Socket File Descriptor:</span>
+                  <strong id="sock-spec-fd">3 (POSIX socket)</strong>
+                </div>
+                <div class="spec-row">
+                  <span>Local Server Address:</span>
+                  <strong>127.0.0.1 (Loopback)</strong>
+                </div>
+                <div class="spec-row">
+                  <span>Bound Port:</span>
+                  <strong>8080</strong>
+                </div>
+                <div class="spec-row">
+                  <span>Protocol Family:</span>
+                  <strong>IPv4 (AF_INET)</strong>
+                </div>
+                <div class="spec-row">
+                  <span>Socket Type:</span>
+                  <strong>SOCK_DGRAM (Connectionless)</strong>
+                </div>
+                <div class="spec-row">
+                  <span>Max Packet Size:</span>
+                  <strong>1024 Bytes (BUFFER_SIZE)</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time UDP Packet Stream Table -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3><i data-lucide="list"></i> Live UDP Packet Stream Log</h3>
+            <span class="badge badge-network" id="packet-count-badge">0 Packets Captured</span>
+          </div>
+          <div class="panel-body">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Packet ID</th>
+                    <th>Time</th>
+                    <th>Source Socket</th>
+                    <th>Dest Socket</th>
+                    <th>Protocol</th>
+                    <th>Size</th>
+                    <th>Payload Content</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="packet-stream-body">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: SYSTEM & NETWORK LOGS -->
+      <section id="tab-logs" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header">
+            <h3><i data-lucide="terminal"></i> System & Network Event Logs</h3>
+            <div class="panel-actions">
+              <div class="log-filter-group">
+                <button class="btn btn-sm btn-filter active" onclick="filterLogs('ALL')">All</button>
+                <button class="btn btn-sm btn-filter" onclick="filterLogs('NETWORK')">Network</button>
+                <button class="btn btn-sm btn-filter" onclick="filterLogs('SIMULATION')">Simulation</button>
+                <button class="btn btn-sm btn-filter" onclick="filterLogs('C_BACKEND')">C Backend</button>
+                <button class="btn btn-sm btn-filter" onclick="filterLogs('ERROR')">Errors</button>
+              </div>
+              <button class="btn btn-sm btn-secondary" onclick="clearLogs()"><i data-lucide="trash-2"></i> Clear Logs</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="log-terminal" id="full-log-terminal">
+              <!-- Dynamically Populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Delivery Assignment Modal -->
+  <div class="modal" id="delivery-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i data-lucide="package"></i> Assign Drone Delivery</h3>
+        <button class="close-btn" onclick="closeDeliveryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Select a drone to assign a new warehouse delivery package task (triggers C backend <code>simulate_delivery</code>):</p>
+        <div class="form-group">
+          <label for="modal-drone-select">Target Drone:</label>
+          <select id="modal-drone-select" class="form-control">
+            <option value="1">Drone 1 (D1)</option>
+            <option value="2">Drone 2 (D2)</option>
+            <option value="3">Drone 3 (D3)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeliveryModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitDelivery()"><i data-lucide="check"></i> Dispatch Delivery Task</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
