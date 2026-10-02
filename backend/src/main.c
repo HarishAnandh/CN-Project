@@ -22,6 +22,9 @@ void display_menu(void) {
 }
 
 int main(void) {
+        // The C backend runs with stdout connected to a pipe.
+    // Disable buffering so the Node bridge receives telemetry immediately.
+    setvbuf(stdout, NULL, _IONBF, 0);
     Drone drones[DRONE_COUNT];
 
     initialize_drones(drones, DRONE_COUNT);

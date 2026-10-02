@@ -70,11 +70,11 @@ function startCBackend() {
   ensureBinaryExists();
 
   if (cProcess) {
-    try { cProcess.kill(); } catch (e) {}
+    try { cProcess.kill(); } catch (e) { }
   }
 
   addLog('BRIDGE', 'INFO', `Spawning C backend subprocess (${BINARY_PATH})...`);
-  
+
   cProcess = spawn(BINARY_PATH, [], {
     cwd: BACKEND_DIR,
     stdio: ['pipe', 'pipe', 'pipe']
@@ -138,7 +138,7 @@ function sendCCommand(cmd, arg = null) {
 
 function parseCOutput(text) {
   const lines = text.split('\n');
-  
+
   lines.forEach(line => {
     const trimmed = line.trim();
     if (!trimmed) return;
@@ -214,7 +214,7 @@ udpSocket.on('error', (err) => {
 udpSocket.on('message', (msg, rinfo) => {
   const payload = msg.toString();
   networkStats.totalPackets++;
-  
+
   const packetData = {
     id: 'PKT-' + Math.floor(1000 + Math.random() * 9000),
     timestamp: new Date().toLocaleTimeString(),
@@ -233,7 +233,7 @@ udpSocket.on('message', (msg, rinfo) => {
   if (recentPackets.length > 100) recentPackets.pop();
 
   addLog('UDP_SOCKET', 'NETWORK', `UDP Datagram received on port ${UDP_PORT} from ${rinfo.address}:${rinfo.port} (${rinfo.size} bytes): "${payload}"`);
-  
+
   broadcast('packet', packetData);
   broadcast('stats', networkStats);
 });
@@ -298,6 +298,9 @@ function handleWSCommand(action) {
       break;
     case 'ASSIGN_DELIVERY':
       sendCCommand('2', String(action.droneId || 1));
+
+      // Refresh the complete C-side drone state after delivery.
+      setTimeout(() => sendCCommand('1'), 150);
       break;
     case 'SIMULATE_MOVEMENT':
       sendCCommand('3');
